@@ -7,4 +7,14 @@
         <Nullable>enable</Nullable>
     </PropertyGroup>
 
+    <ItemGroup>
+      <Reference Include="OnlineStoreLibrary">
+        <HintPath>..\..\ClassLibraries\OnlineStoreLibrary\bin\Debug\net9.0\OnlineStoreLibrary.dll</HintPath>
+      </Reference>
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\OnlineStoreClassLibrary\OnlineStoreClassLibrary.csproj" />
+    </ItemGroup>
+
 </Project>
