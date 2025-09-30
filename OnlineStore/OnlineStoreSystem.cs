@@ -1,162 +1,134 @@
 using System.Collections.ObjectModel;
+using System.Data.Common;
+using OnlineStore.Data.Repositories;
+using OnlineStore.Data.Repositories.Interfaces;
 
 namespace OnlineStore;
 using OnlineStoreClassLibrary;
 public class OnlineStoreSystem
 {
-    private List<Product> _products;
-    private List<Order> _orders;
-    private List<Customer> _customers;
-    private Customer? _activeCustomer = null;
+    private DbProviderFactory _providerFactory;
+    private string _connectionString;
 
-    public OnlineStoreSystem()
+    public OnlineStoreSystem(DbProviderFactory factory, string connectionString)
     {
-        _products = new List<Product>();
-        _orders = new List<Order>();
-        _customers = new List<Customer>();
-        _activeCustomer = null;
+       this._providerFactory = factory;
+       this._connectionString = connectionString;
     }
-
-    public OnlineStoreSystem(List<Product> products)
-    {
-        _products = products;
-        _orders = new List<Order>();
-        _customers = new List<Customer>();
-        _activeCustomer = null;
-    }
-
+    
     public bool AddProduct(string name, decimal price)
     {
-        if (_products.Find(p => p.Name == name) == null)
-        {
-            _products.Add(new Product(name, price));
-            return true;
-        }
-
         return false;
     }
 
     public bool CheckProductByName(string name)
     {
-        return _products.Find(p => p.Name == name) != null;
+        return false;
     }
 
-    public void AddCustomer(string name)
+    public void AddCustomer(string firstName, string lastName)
     {
-        _customers.Add(new Customer(name));
+        using (IUnitOfWork uow = new UnitOfWork(this._providerFactory,  this._connectionString))
+        {
+            try
+            {
+                Customer newCustomer = new Customer();
+                newCustomer.FirstName = firstName;
+                newCustomer.LastName = lastName;
+                uow.Customers.AddCustomer(newCustomer);
+                
+                //commit cart needed before committing the transaction (TO BE DONE)
+                uow.Commit();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                uow.Rollback();
+            }
+        }
     }
 
     public Order PlaceOrder(Customer customer)
     {
-        Order order = customer.Checkout();
-        _orders.Add(order);
-        return order;
+        return null;
     }
 
     public void SelectCustomer(int id)
     {
-        _activeCustomer = _customers[id];
+        return;
     }
 
     public void DisplayProducts()
     {
-        foreach (Product product in _products)
-        {
-            Console.WriteLine(product.ToString());
-        }
+        return;
     }
 
-    public void DisplayCustomers()
-    {
-        if (_customers.Count == 0)
-        {
-            Console.WriteLine("No Customers Found");
-            return;
-        }
-
-        foreach (Customer customer in _customers)
-        {
-            if (customer == _activeCustomer)
-            {
-                Console.WriteLine(customer.ToString() + " (is active)");
-            }
-            else
-            {
-                Console.WriteLine(customer.ToString());
-            }
-            
-        }
-    }
+    
 
     public bool CheckCustomerByName(string name)
     {
-        return _customers.Find(c => c.Name == name) != null;
+        return false;
     }
 
     public bool SelectActiveCustomer(int id)
     {
-        if (id < 0 || id >= _customers.Count) return false;
-        
-        _activeCustomer = _customers[id];
-        return true;
+        return false;
     }
 
     public List<ProductDto> GetProducts()
     {
-        return _products.Select(p => new ProductDto(p.ProductId, p.Name, p.Price)).ToList();
+        return null;
     }
 
-    public List<CustomerDto> GetCustomers()
+    public List<Customer> GetCustomers()
     {
-        return _customers.Select(c => new CustomerDto(c.CustomerId, c.Name)).ToList();
+        List<Customer> customers = new List<Customer>();
+        using (IUnitOfWork uow = new UnitOfWork(this._providerFactory,  this._connectionString))
+        {
+            try
+            {
+                customers = uow.Customers.GetCustomers();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+                uow.Rollback();
+            }
+        }
+
+        return customers;
+
     }
 
     public List<OrderDto> GetOrders()
     {
-        return _orders.Select(o => new OrderDto(o.OrderId, o.OrderTotal, new CustomerDto(o.Customer!.CustomerId,o.Customer.Name), o.OrderDate)).ToList();
+        return null;
     }
 
     public bool HasActiveCustomer()
     {
-        if (_activeCustomer == null) return false;
-        return true;
+        return false;
     }
     
     public List<CartItemDto> GetActiveCustomerCart()
     {
-        if (!HasActiveCustomer())
-        {
-            return null;
-        }
-
-        return _activeCustomer!.GetShoppingCart();
+        return null;
     }
 
     public bool CheckProductById(int id)
     {
-        if (id < 0 || id >= _products.Count) return false;
-
-        return true;
+        return false;
     }
 
     public bool AddToCart(int id, int quantity)
     {
-        if (!CheckProductById(id)) return false;
-        
-        _activeCustomer.AddProduct(new CartItem(_products[id], quantity));
-        return true;
+        return false;
     }
 
     public OrderDto Checkout()
     {
-        if (_activeCustomer == null) return null;
-        
-        Order order = _activeCustomer.Checkout();
-        if(order == null) return null;
-        
-        _orders.Add(order);
-        return new OrderDto(order.OrderId, order.OrderTotal, new CustomerDto(order.Customer!.CustomerId, order.Customer.Name), order.OrderDate);
-        
+        return null;
+
     }
     
     

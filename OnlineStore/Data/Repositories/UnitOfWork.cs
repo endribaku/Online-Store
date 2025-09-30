@@ -5,24 +5,32 @@ namespace OnlineStore.Data.Repositories;
 
 public class UnitOfWork : IUnitOfWork
 {
-    private DbConnection _connection;
-    private DbTransaction _transaction;
+    public DbConnection Connection {get; set;}
+    public DbTransaction Transaction {get; set;}
     public ICustomerRepository Customers { get; }
     
-    public UnitOfWork(DbConnection connection)
+    public UnitOfWork(DbProviderFactory factory, string connectionString)
     {
-        _connection = connection;
-        _transaction = _connection.BeginTransaction();
-        Customers = new CustomerRepository(_connection);
+        Connection = factory.CreateConnection();
+        Connection.ConnectionString = connectionString;
+        Connection.Open();
+        Transaction = Connection.BeginTransaction();
+        Customers = new CustomerRepository(Connection, this);
     }
     
     public void Commit()
     {
-        return;
+        Transaction.Commit();
     }
 
     public void Rollback()
     {
-        return;
+        Transaction.Rollback();
+    }
+
+    public void Dispose()
+    {
+        Connection.Dispose();
+        Transaction.Dispose();
     }
 }

@@ -1,7 +1,10 @@
 ﻿
+using System.Data.Common;
+using MySqlConnector;
 using OnlineStoreClassLibrary;
 
 namespace OnlineStore;
+using System.Data.SqlClient;
 
 class Program
 {
@@ -10,16 +13,18 @@ class Program
         Console.Title = "Online Store";
         Console.ForegroundColor = ConsoleColor.Green;
         
-        List<Product> products = new List<Product>() // starter products
-        {
-            new Product("Laptop", 999.99m),
-            new Product("Smartphone", 699.50m),
-            new Product("Headphones", 149.95m),
-            new Product("Monitor", 229.99m),
-            new Product("Keyboard", 89.99m)
-        };
+        //db connection
+        MySqlConnection connection = new MySqlConnection("Server=127.0.0.1;Port=3306;Database=online_store;Uid=root;Pwd=my-secret-pw");
+
+        MySqlConnectorFactory factory = MySqlConnectorFactory.Instance;
+        MySqlConnectionStringBuilder mySqlConnectionStringBuilder = new MySqlConnectionStringBuilder();
+        mySqlConnectionStringBuilder.Server = "127.0.0.1";
+        mySqlConnectionStringBuilder.Port = 3306;
+        mySqlConnectionStringBuilder.UserID = "root";
+        mySqlConnectionStringBuilder.Password = "my-secret-pw";
+        mySqlConnectionStringBuilder.Database = "online_store";
         
-        OnlineStoreSystem system = new OnlineStoreSystem(products);
+        OnlineStoreSystem system = new OnlineStoreSystem(factory, mySqlConnectionStringBuilder.ConnectionString);
         bool isRunning = true;
         while (isRunning)
         {
@@ -72,7 +77,6 @@ class Program
                                     break;
                             }
                         }
-
                         break;
                     case "3":
                         bool onCartMenu = true;
@@ -206,15 +210,15 @@ class Program
 
     private static void DisplayCustomers(OnlineStoreSystem system)
     {
-        List < CustomerDto > customers = system.GetCustomers();
+        List <Customer> customers = system.GetCustomers();
         if (customers.Count == 0)
         {
             Console.WriteLine("No Customers found");
             return;
         }
-        foreach (CustomerDto customer in customers)
+        foreach (Customer customer in customers)
         {
-            Console.WriteLine($"Customer Id: {customer.Id} Name: {customer.Name}");
+            Console.WriteLine($"Customer Id: {customer.CustomerId} Name: {customer.FirstName} {customer.LastName}");
         }
     }
 
@@ -222,19 +226,27 @@ class Program
     {
         Console.WriteLine("Who would you like to add?");
         
-        string customerName = "";
-        bool validName = false;
-        while (!validName)
+        string customerFirstName = "";
+        string customerLastName = "";
+        bool validFirstName = false;
+        bool validLastName = false;
+        while (!validFirstName || !validLastName)
         {
-            Console.WriteLine("Enter customer name:");
-            customerName = Console.ReadLine()!;
-            if (customerName.Length > 0 && !system.CheckCustomerByName(customerName))
+            Console.WriteLine("Enter customer First name:");
+            customerFirstName = Console.ReadLine()!;
+            if (customerFirstName.Length > 0)
             {
-                validName = true;
+                validFirstName = true;
+            }
+            Console.WriteLine("Enter customer Last name:");
+            customerLastName = Console.ReadLine()!;
+            if (customerLastName.Length > 0)
+            {
+                validLastName = true;
             }
         }
         
-        system.AddCustomer(customerName);
+        system.AddCustomer(customerFirstName, customerLastName);
     }
 
     private static void SelectCustomerMenu(OnlineStoreSystem system)
