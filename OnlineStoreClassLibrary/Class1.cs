@@ -10,7 +10,7 @@
     
     public class Customer
     {
-        public int CustomerId { get; private set; }       
+        public int CustomerId { get; set; }       
         public string FirstName { get; set; }
         public string LastName  { get; set; }
         
@@ -81,6 +81,17 @@
 
         public int CartId { get; set; }
         public Cart Cart { get; set; } = null!;
+    }
+
+    public class Order
+    {
+        public int OrderId { get; private set; }
+        public DateTime Date { get; private set; }
+        public decimal Total { get; private set; }
+        public string CustomerName { get; private set; } = null!;
+        
+        public int CustomerId { get; set; }
+        public Customer Customer { get; set; } = null!;
     }
 
 
