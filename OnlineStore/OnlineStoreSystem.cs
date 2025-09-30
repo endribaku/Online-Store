@@ -37,7 +37,23 @@ public class OnlineStoreSystem
                 newCustomer.LastName = lastName;
                 uow.Customers.AddCustomer(newCustomer);
                 
+                DbCommand LastInsertedCommand = uow.Connection.CreateCommand();
+                LastInsertedCommand.CommandText = "SELECT LAST_INSERT_ID() AS id_value;";
+                LastInsertedCommand.Transaction = uow.Transaction;
+                DbDataReader reader = LastInsertedCommand.ExecuteReader();
+                int customerId = -1;
+                while (reader.Read())
+                {
+                   customerId = int.Parse(reader["id_value"].ToString()!);
+                }
+                
+
+                reader.Close();
                 //commit cart needed before committing the transaction (TO BE DONE)
+                Cart newCart = new Cart();
+                newCart.CustomerId = customerId;
+                uow.Carts.CreateCart(newCart);
+                
                 uow.Commit();
             }
             catch (Exception ex)

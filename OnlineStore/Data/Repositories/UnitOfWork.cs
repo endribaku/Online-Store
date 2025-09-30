@@ -8,14 +8,19 @@ public class UnitOfWork : IUnitOfWork
     public DbConnection Connection {get; set;}
     public DbTransaction Transaction {get; set;}
     public ICustomerRepository Customers { get; }
+    public ICartRepository Carts { get; }
+    
+    
     
     public UnitOfWork(DbProviderFactory factory, string connectionString)
     {
         Connection = factory.CreateConnection();
         Connection.ConnectionString = connectionString;
         Connection.Open();
+        
         Transaction = Connection.BeginTransaction();
         Customers = new CustomerRepository(Connection, this);
+        Carts = new CartRepository(Connection, this);
     }
     
     public void Commit()

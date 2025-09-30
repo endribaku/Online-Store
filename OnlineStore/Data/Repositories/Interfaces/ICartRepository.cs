@@ -5,7 +5,7 @@ using OnlineStoreClassLibrary;
 public interface ICartRepository
 {
     IEnumerable<Cart> GetCarts();
-    Cart GetCartById(int cartId);
+    Cart GetCartById(int customerId);
     void CreateCart(Cart cart);
     void UpdateCart(Cart cart);
     void DeleteCart(Cart cart);

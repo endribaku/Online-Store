@@ -8,6 +8,7 @@ public interface IUnitOfWork : IDisposable
     DbTransaction Transaction { get; }
     DbConnection Connection { get; }
     ICustomerRepository Customers { get; }
+    ICartRepository Carts { get; }
     
     void Commit();
     void Rollback();
