@@ -9,6 +9,7 @@ public interface IUnitOfWork : IDisposable
     DbConnection Connection { get; }
     ICustomerRepository Customers { get; }
     ICartRepository Carts { get; }
+    IProductRepository Products { get; }
     
     void Commit();
     void Rollback();

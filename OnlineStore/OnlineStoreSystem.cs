@@ -9,6 +9,7 @@ public class OnlineStoreSystem
 {
     private DbProviderFactory _providerFactory;
     private string _connectionString;
+    private int _activeCustomerId = -1;
 
     public OnlineStoreSystem(DbProviderFactory factory, string connectionString)
     {
@@ -37,8 +38,10 @@ public class OnlineStoreSystem
                 newCustomer.LastName = lastName;
                 uow.Customers.AddCustomer(newCustomer);
                 
+                
+                
                 DbCommand LastInsertedCommand = uow.Connection.CreateCommand();
-                LastInsertedCommand.CommandText = "SELECT LAST_INSERT_ID() AS id_value;";
+                LastInsertedCommand.CommandText = "SELECT LAST_INSERT_ID() AS id_value;"; // this command will likely be a util function in the future
                 LastInsertedCommand.Transaction = uow.Transaction;
                 DbDataReader reader = LastInsertedCommand.ExecuteReader();
                 int customerId = -1;
@@ -47,9 +50,9 @@ public class OnlineStoreSystem
                    customerId = int.Parse(reader["id_value"].ToString()!);
                 }
                 
-
                 reader.Close();
-                //commit cart needed before committing the transaction (TO BE DONE)
+                
+                //adding cart needed before committing the transaction (DONE)
                 Cart newCart = new Cart();
                 newCart.CustomerId = customerId;
                 uow.Carts.CreateCart(newCart);
@@ -68,17 +71,7 @@ public class OnlineStoreSystem
     {
         return null;
     }
-
-    public void SelectCustomer(int id)
-    {
-        return;
-    }
-
-    public void DisplayProducts()
-    {
-        return;
-    }
-
+    
     
 
     public bool CheckCustomerByName(string name)
@@ -88,12 +81,32 @@ public class OnlineStoreSystem
 
     public bool SelectActiveCustomer(int id)
     {
-        return false;
+        List < Customer > customers= GetCustomers();
+        if (customers.Find((c) => c.CustomerId == id) == null) return false;
+        
+        _activeCustomerId = id;
+        return true;
+
     }
 
-    public List<ProductDto> GetProducts()
+    public List<Product> GetProducts()
     {
-        return null;
+        List<Product> products = new List<Product>();
+        using (IUnitOfWork uow = new UnitOfWork(this._providerFactory, this._connectionString))
+        {
+            try
+            {
+                products = uow.Products.GetProducts();
+                uow.Commit();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+                uow.Rollback();
+            }
+        }
+
+        return products;
     }
 
     public List<Customer> GetCustomers()
@@ -104,6 +117,7 @@ public class OnlineStoreSystem
             try
             {
                 customers = uow.Customers.GetCustomers();
+                uow.Commit();
             }
             catch (Exception e)
             {

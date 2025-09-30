@@ -2,7 +2,7 @@ namespace OnlineStore.Data.Repositories.Interfaces;
 using OnlineStoreClassLibrary;
 public interface IProductRepository
 {
-    IEnumerable<Product> GetProducts();
+    List<Product> GetProducts();
     Product GetProductById(int productId);
     void GetProduct(Product product);
     void UpdateProduct(Product product);

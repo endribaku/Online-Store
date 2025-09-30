@@ -9,6 +9,7 @@ public class UnitOfWork : IUnitOfWork
     public DbTransaction Transaction {get; set;}
     public ICustomerRepository Customers { get; }
     public ICartRepository Carts { get; }
+    public IProductRepository Products { get; }
     
     
     
@@ -21,6 +22,7 @@ public class UnitOfWork : IUnitOfWork
         Transaction = Connection.BeginTransaction();
         Customers = new CustomerRepository(Connection, this);
         Carts = new CartRepository(Connection, this);
+        Products = new ProductRepository(Connection, this);
     }
     
     public void Commit()

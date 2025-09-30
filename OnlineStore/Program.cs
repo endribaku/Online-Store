@@ -13,9 +13,8 @@ class Program
         Console.Title = "Online Store";
         Console.ForegroundColor = ConsoleColor.Green;
         
-        //db connection
-        MySqlConnection connection = new MySqlConnection("Server=127.0.0.1;Port=3306;Database=online_store;Uid=root;Pwd=my-secret-pw");
-
+       
+        //connection string
         MySqlConnectorFactory factory = MySqlConnectorFactory.Instance;
         MySqlConnectionStringBuilder mySqlConnectionStringBuilder = new MySqlConnectionStringBuilder();
         mySqlConnectionStringBuilder.Server = "127.0.0.1";
@@ -142,15 +141,15 @@ class Program
 
     private static void DisplayProducts(OnlineStoreSystem system)
     {
-        List<ProductDto> products = system.GetProducts();
+        List<Product> products = system.GetProducts();
         if (products.Count == 0)
         {
             Console.WriteLine("No products found");
             return;
         }
-        foreach (ProductDto product in products)
+        foreach (Product product in products)
         {
-            Console.WriteLine($"Product Id: {product.Id} Name: {product.Name} Price: ({product.Price})");
+            Console.WriteLine($"Product Id: {product.ProductId} Name: {product.Name} Price: ({product.Price})");
         }
     }
 
@@ -261,7 +260,7 @@ class Program
             bool isInt = int.TryParse(customerOption, out var customerId);
             if (isInt && system.SelectActiveCustomer(customerId))
             {
-                Console.WriteLine("Customer selected");
+                Console.WriteLine("Customer selected with id {0}", customerId);
                 validId = true;
             }
             else
