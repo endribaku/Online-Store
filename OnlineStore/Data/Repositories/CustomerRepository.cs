@@ -17,32 +17,50 @@ public class CustomerRepository : ICustomerRepository
 
     public void AddCustomer(Customer customer)
     {
-        DbCommand cmd = _connection.CreateCommand();
-        cmd.CommandText = "INSERT INTO Customer (FirstName, LastName) VALUES (@FirstName, @LastName)";
-        cmd.Transaction = this._unitOfWork.Transaction;
-        
-        DbParameter firstNameParam = cmd.CreateParameter(); // firstNameParam
-        firstNameParam.ParameterName = "@FirstName";
-        firstNameParam.Value = customer.FirstName;
-        DbParameter lastNameParam = cmd.CreateParameter(); // lastNameParam
-        lastNameParam.ParameterName = "@LastName";
-        lastNameParam.Value = customer.LastName;
-        cmd.Parameters.Add(firstNameParam);
-        cmd.Parameters.Add(lastNameParam);
+        try
+        {
+            DbCommand cmd = _connection.CreateCommand();
+            cmd.CommandText = "INSERT INTO Customer (FirstName, LastName) VALUES (@FirstName, @LastName)";
+            cmd.Transaction = this._unitOfWork.Transaction;
 
-        cmd.ExecuteNonQuery();
+            DbParameter firstNameParam = cmd.CreateParameter(); // firstNameParam
+            firstNameParam.ParameterName = "@FirstName";
+            firstNameParam.Value = customer.FirstName;
+            DbParameter lastNameParam = cmd.CreateParameter(); // lastNameParam
+            lastNameParam.ParameterName = "@LastName";
+            lastNameParam.Value = customer.LastName;
+            cmd.Parameters.Add(firstNameParam);
+            cmd.Parameters.Add(lastNameParam);
+
+            cmd.ExecuteNonQuery();
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e.Message);
+            throw;
+        }
+        
 
     }
 
     public void DeleteCustomer(int customerId)
     {
-        DbCommand cmd = _connection.CreateCommand();
-        cmd.CommandText = "DELETE FROM Customer WHERE CustomerId = @customerId";
-        DbParameter idParam = cmd.CreateParameter();
-        idParam.ParameterName = "@customerId";
-        idParam.Value = customerId;
-        cmd.Parameters.Add(idParam);
-        cmd.ExecuteNonQuery();
+        try
+        {
+            DbCommand cmd = _connection.CreateCommand();
+            cmd.CommandText = "DELETE FROM Customer WHERE CustomerId = @customerId";
+            DbParameter idParam = cmd.CreateParameter();
+            idParam.ParameterName = "@customerId";
+            idParam.Value = customerId;
+            cmd.Parameters.Add(idParam);
+            cmd.ExecuteNonQuery();
+        }
+        catch (Exception)
+        {
+            Console.WriteLine("Error deleting customer");
+            throw;
+        }
+        
     }
 
     public Customer GetCustomerById(int customerId)
@@ -69,7 +87,8 @@ public class CustomerRepository : ICustomerRepository
         }
         catch (Exception e)
         {
-            Console.WriteLine(e.Message);
+            Console.WriteLine("Error getting customer");
+            throw;
         }
         finally
         {
@@ -111,9 +130,10 @@ public class CustomerRepository : ICustomerRepository
             
             return customers;
         }
-        catch (Exception e)
+        catch (Exception)
         {
-            throw e;
+            Console.WriteLine("Error getting customers");
+            throw;
         }
         finally
         {
