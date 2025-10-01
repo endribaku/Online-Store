@@ -10,6 +10,7 @@ public interface IUnitOfWork : IDisposable
     ICustomerRepository Customers { get; }
     ICartRepository Carts { get; }
     IProductRepository Products { get; }
+    ICartItemRepository CartItems { get; }
     
     void Commit();
     void Rollback();

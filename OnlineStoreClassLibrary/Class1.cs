@@ -28,6 +28,16 @@
         
         public List<OrderLine> OrderLines { get; } = new();
         public List<CartItem> CartItems { get; } = new();
+
+        public Product(int productId)
+        {
+            ProductId = productId;
+        }
+
+        public Product()
+        {
+            
+        }
     }
 
     
@@ -67,7 +77,14 @@
         public int CustomerId { get; set; }                  
         public Customer Customer { get; set; } = null!;
         
-        public List<CartItem> Items { get; } = new();
+        public List<CartItem> Items { get; set; } = new();
+
+        public Cart(int id)
+        {
+            CartId = id;
+        }
+        
+        public Cart() {}
     }
 
     
@@ -81,14 +98,24 @@
 
         public int CartId { get; set; }
         public Cart Cart { get; set; } = null!;
+
+        public CartItem(int id)
+        {
+            CartId = id;
+        }
+
+        public CartItem()
+        {
+            
+        }
     }
 
     public class Order
     {
         public int OrderId { get; private set; }
-        public DateTime Date { get; private set; }
-        public decimal Total { get; private set; }
-        public string CustomerName { get; private set; } = null!;
+        public DateTime Date { get; private set; } = DateTime.UtcNow;
+        public decimal Total { get; set; }
+        public string CustomerName { get; set; } = null!;
         
         public int CustomerId { get; set; }
         public Customer Customer { get; set; } = null!;

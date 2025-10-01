@@ -26,8 +26,7 @@ public class ProductRepository: IProductRepository
             List<Product> products = new List<Product>();
             while (reader.Read())
             {
-                Product product = new Product();
-                product.ProductId = int.Parse(reader["ProductId"].ToString()!);
+                Product product = new Product(int.Parse(reader["ProductId"].ToString()!));
                 product.Name = reader["Name"].ToString()!;
                 product.Price = decimal.Parse(reader["Price"].ToString()!);
 
@@ -52,12 +51,73 @@ public class ProductRepository: IProductRepository
 
     public Product GetProductById(int id)
     {
+        DbDataReader reader = null;
+        try
+        {
+            DbCommand cmd = _connection.CreateCommand();
+            cmd.CommandText = "SELECT *  FROM Product WHERE ProductId = @ProductId";
+            cmd.Transaction = this._unitOfWork.Transaction;
+
+            DbParameter productIdParam = cmd.CreateParameter();
+            productIdParam.ParameterName = "@ProductId";
+            productIdParam.Value = id;
+
+            cmd.Parameters.Add(productIdParam);
+
+            reader = cmd.ExecuteReader();
+
+            if (reader.Read())
+            {
+                Product product = new Product(int.Parse(reader["productId"].ToString()!));
+                product.Name = reader["Name"].ToString()!;
+                product.Price = decimal.Parse(reader["Price"].ToString()!);
+                
+
+                return product;
+            }
+        }
+        catch (Exception)
+        {
+            Console.WriteLine("Couldn't get product");
+            throw;
+        }
+        finally
+        {
+            if (reader != null)
+            {
+                reader.Close();
+            }
+        }
+
         return null;
     }
 
-    public void AddProduct(Product product)
+    public void CreateProduct(Product product)
     {
-        return;
+        try
+        {
+            DbCommand cmd = _connection.CreateCommand();
+            cmd.CommandText = "INSERT INTO Product (Name, Price) VALUES (@Name, @Price)";
+            cmd.Transaction = this._unitOfWork.Transaction;
+
+            DbParameter productNameParameter = cmd.CreateParameter(); //name param
+            productNameParameter.ParameterName = "@Name";
+            productNameParameter.Value = product.Name;
+
+            DbParameter productPriceParameter = cmd.CreateParameter(); //price param
+            productPriceParameter.ParameterName = "@Price";
+            productPriceParameter.Value = product.Price;
+
+            cmd.Parameters.Add(productNameParameter);
+            cmd.Parameters.Add(productPriceParameter);
+
+            cmd.ExecuteNonQuery();
+        }
+        catch (Exception)
+        {
+            Console.WriteLine("Couldn't add product");
+            throw;
+        }
     }
 
     public void DeleteProduct(int productId)

@@ -11,6 +11,8 @@ public class UnitOfWork : IUnitOfWork
     public ICartRepository Carts { get; }
     public IProductRepository Products { get; }
     
+    public ICartItemRepository CartItems { get; }
+    
     
     
     public UnitOfWork(DbProviderFactory factory, string connectionString)
@@ -23,6 +25,7 @@ public class UnitOfWork : IUnitOfWork
         Customers = new CustomerRepository(Connection, this);
         Carts = new CartRepository(Connection, this);
         Products = new ProductRepository(Connection, this);
+        CartItems = new CartItemRepository(Connection, this);
     }
     
     public void Commit()

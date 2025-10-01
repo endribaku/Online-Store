@@ -52,13 +52,18 @@ public class CartRepository : ICartRepository
             cmd.Parameters.Add(customerIdParam);
 
             reader = cmd.ExecuteReader();
-            Cart cart = new Cart();
+            Cart cart = null;
             while (reader.Read())
             {
-                cart.CartId = int.Parse(reader["CartId"].ToString()!);
+                cart = new Cart(int.Parse(reader["CartId"].ToString()!));
                 cart.CustomerId = int.Parse(reader["CustomerId"].ToString()!);
             }
 
+            if (cart == null)
+            {
+                throw new Exception();
+            }
+            
             return cart;
         }
         catch (Exception)

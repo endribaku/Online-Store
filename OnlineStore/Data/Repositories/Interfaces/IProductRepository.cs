@@ -7,4 +7,6 @@ public interface IProductRepository
     void GetProduct(Product product);
     void UpdateProduct(Product product);
     void DeleteProduct(int productId);
+    
+    void CreateProduct(Product product);
 }

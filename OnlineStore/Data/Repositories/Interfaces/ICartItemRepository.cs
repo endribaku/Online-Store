@@ -1,13 +1,13 @@
 using OnlineStoreClassLibrary;
 
 namespace OnlineStore.Data.Repositories.Interfaces;
-using OnlineStoreLibrary;
+using OnlineStoreClassLibrary;
 public interface ICartItemRepository
 {
-    IEnumerable<CartItem> GetCartItems();
-    CartItem GetCartItemById(int cartId);
-    void CreateCartItem(Cart cart);
-    void UpdateCartItem(Cart cart);
-    void DeleteCartItem(Cart cart);
+    List<CartItem> GetCartItems(int cartId);
+    CartItem GetCartItemById(int cartItemId, int productId);
+    void CreateCartItem(CartItem cartItem);
+    void UpdateCartItem(CartItem cartItem);
+    void DeleteCartItem(CartItem cartItem);
     
 }

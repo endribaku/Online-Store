@@ -284,19 +284,20 @@ class Program
 
     private static void DisplayCart(OnlineStoreSystem system)
     {
-        List<CartItemDto> shoppingCart = system.GetActiveCustomerCart();
+        Cart shoppingCart = system.GetActiveCustomerCart();
+        Console.WriteLine("Cart items count: " + shoppingCart.Items.Count);
         if (shoppingCart == null)
         {
             Console.WriteLine("No shopping cart. Select Customer");
-        } else if (shoppingCart.Count == 0)
+        } else if (shoppingCart.Items.Count == 0)
         {
             Console.WriteLine("Shopping cart is empty");
         }
         else
         {
-            foreach (CartItemDto shopping in shoppingCart)
+            foreach (CartItem shopping in shoppingCart.Items)
             {
-                Console.WriteLine($"Product Id: {shopping.Id} Name: {shopping.Name} Price: ({shopping.Price}) Quantity: {shopping.Quantity}");
+                Console.WriteLine($"Product Id: {shopping.ProductId} Name: {shopping.Product.Name} UnitPrice: ({shopping.Product.Price}) Quantity: {shopping.Quantity} Total:{shopping.Product.Price * shopping.Quantity}");
             }
         }
     }
