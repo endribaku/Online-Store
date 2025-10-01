@@ -11,6 +11,9 @@ public interface IUnitOfWork : IDisposable
     ICartRepository Carts { get; }
     IProductRepository Products { get; }
     ICartItemRepository CartItems { get; }
+    IOrderLineRepository OrderLines { get; }
+    
+    IOrderRepository Orders { get; }
     
     void Commit();
     void Rollback();

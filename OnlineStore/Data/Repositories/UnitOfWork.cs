@@ -13,6 +13,9 @@ public class UnitOfWork : IUnitOfWork
     
     public ICartItemRepository CartItems { get; }
     
+    public IOrderLineRepository OrderLines { get; }
+    public IOrderRepository Orders { get; }
+
     
     
     public UnitOfWork(DbProviderFactory factory, string connectionString)
@@ -20,12 +23,15 @@ public class UnitOfWork : IUnitOfWork
         Connection = factory.CreateConnection();
         Connection.ConnectionString = connectionString;
         Connection.Open();
-        
         Transaction = Connection.BeginTransaction();
+        
+        
         Customers = new CustomerRepository(Connection, this);
         Carts = new CartRepository(Connection, this);
         Products = new ProductRepository(Connection, this);
         CartItems = new CartItemRepository(Connection, this);
+        OrderLines = new OrderLineRepository(Connection, this);
+        Orders = new OrderRepository(Connection, this);
     }
     
     public void Commit()

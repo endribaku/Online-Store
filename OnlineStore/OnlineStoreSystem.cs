@@ -84,7 +84,7 @@ public class OnlineStoreSystem
         }
     }
 
-    public Order PlaceOrder(Customer customer)
+    public CustomerOrder PlaceOrder(Customer customer)
     {
         return null;
     }
@@ -147,9 +147,24 @@ public class OnlineStoreSystem
 
     }
 
-    public List<OrderDto> GetOrders()
+    public List<CustomerOrder> GetOrders()
     {
-        return null;
+        List<CustomerOrder> orders = new List<CustomerOrder>();
+        using (IUnitOfWork uow = new UnitOfWork(this._providerFactory, this._connectionString))
+        {
+            try
+            {
+                orders = uow.Orders.GetOrders();
+                uow.Commit();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+                uow.Rollback();
+            }
+        }
+
+        return orders;
     }
 
     public bool HasActiveCustomer()
@@ -254,9 +269,43 @@ public class OnlineStoreSystem
         }
     }
 
-    public OrderDto Checkout()
+    public CustomerOrder Checkout()
     {
-        return null;
+        if (!HasActiveCustomer())
+        {
+            return null;
+        }
+
+        CustomerOrder order = null;
+
+        using (IUnitOfWork uow = new UnitOfWork(this._providerFactory, this._connectionString))
+        {
+            try
+            {
+                Customer customer = uow.Customers.GetCustomerById(_activeCustomerId);
+                List<CartItem> items = GetActiveCustomerCart().Items;
+                if (items.Count == 0)
+                {
+                    return null;
+                }
+                Decimal totalPrice = items.Sum(item => item.Product.Price * item.Quantity);
+
+                order = new CustomerOrder(DateTime.Now);
+                order.Total = totalPrice;
+                order.CustomerId = _activeCustomerId;
+                order.CustomerName = customer.FirstName + " " + customer.LastName;
+
+                uow.Orders.CreateOrder(order);
+                uow.Commit();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+                uow.Rollback();
+            }
+        }
+
+        return order;
 
     }
     

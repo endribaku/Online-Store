@@ -365,7 +365,7 @@ class Program
             return;
         }
         
-        OrderDto order = system.Checkout();
+        CustomerOrder order = system.Checkout();
         if (order == null)
         {
             Console.WriteLine("Shopping cart is empty, Order couldn't be placed.");
@@ -373,22 +373,22 @@ class Program
         else
         {
             Console.WriteLine("Order placed");
-            Console.WriteLine($"OrderId: {order.Id} Customer Name: {order.Customer.Name}, Total: {order.Total}, Date: {order.OrderDate}");
+            Console.WriteLine($"Customer Name: {order.CustomerName}, Total: {order.Total}, Date: {order.Date}");
         }
     }
 
     private static void DisplayOrders(OnlineStoreSystem system)
     {
-        List<OrderDto> orders = system.GetOrders();
+        List<CustomerOrder> orders = system.GetOrders();
         if (orders.Count == 0)
         {
             Console.WriteLine("No orders found.");
             return;
         }
 
-        foreach (OrderDto order in orders)
+        foreach (CustomerOrder order in orders)
         {
-            Console.WriteLine($"OrderId: {order.Id} Customer: {order.Customer.Name} Total: {order.Total} Date: {order.OrderDate}");
+            Console.WriteLine($"OrderId: {order.OrderId} Customer: {order.CustomerName} Total: {order.Total} Date: {order.Date}");
         }
         
     }

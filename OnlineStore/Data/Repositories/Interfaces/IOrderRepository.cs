@@ -1,12 +1,13 @@
 
-using OnlineStoreLibrary;
+using OnlineStoreClassLibrary;
 namespace OnlineStore.Data.Repositories.Interfaces;
 
 public interface IOrderRepository
 {
-    IEnumerable<Order> GetOrders();
-    Order GetOrderById(int orderId);
-    void GetOrder(Order order);
-    void UpdateOrder(Order order);
+    List<CustomerOrder> GetOrders();
+    CustomerOrder GetOrderById(int orderId);
+    void UpdateOrder(CustomerOrder order);
     void DeleteOrder(int orderId);
+    
+    void CreateOrder(CustomerOrder order);
 }

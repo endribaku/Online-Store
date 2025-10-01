@@ -1,5 +1,6 @@
 using System.Data.Common;
 using OnlineStore.Data.Repositories.Interfaces;
+using OnlineStore.Utilities;
 using OnlineStoreClassLibrary;
 namespace OnlineStore.Data.Repositories;
 
@@ -22,15 +23,10 @@ public class CustomerRepository : ICustomerRepository
             DbCommand cmd = _connection.CreateCommand();
             cmd.CommandText = "INSERT INTO Customer (FirstName, LastName) VALUES (@FirstName, @LastName)";
             cmd.Transaction = this._unitOfWork.Transaction;
-
-            DbParameter firstNameParam = cmd.CreateParameter(); // firstNameParam
-            firstNameParam.ParameterName = "@FirstName";
-            firstNameParam.Value = customer.FirstName;
-            DbParameter lastNameParam = cmd.CreateParameter(); // lastNameParam
-            lastNameParam.ParameterName = "@LastName";
-            lastNameParam.Value = customer.LastName;
-            cmd.Parameters.Add(firstNameParam);
-            cmd.Parameters.Add(lastNameParam);
+            
+            ParameterHelper.AddParameter(cmd, "@FirstName", customer.FirstName);
+            ParameterHelper.AddParameter(cmd, "@LastName", customer.LastName);
+            
 
             cmd.ExecuteNonQuery();
         }
@@ -68,13 +64,16 @@ public class CustomerRepository : ICustomerRepository
         DbDataReader reader = null;
         try
         {
-            if (_connection.State == System.Data.ConnectionState.Closed)
-            {
-                _connection.Open();
-            }
             DbCommand cmd = _connection.CreateCommand();
             cmd.CommandText = "SELECT * FROM Customer WHERE CustomerId = @customerId";
             cmd.Transaction = this._unitOfWork.Transaction;
+            
+            DbParameter customerIdParam = cmd.CreateParameter();
+            customerIdParam.ParameterName = "@customerId";
+            customerIdParam.Value = customerId;
+            
+            cmd.Parameters.Add(customerIdParam);
+            
             reader = cmd.ExecuteReader();
             Customer customer = new Customer();
             while (reader.Read())
@@ -96,7 +95,6 @@ public class CustomerRepository : ICustomerRepository
             {
                 reader.Close();
             }
-            _connection.Close();
         }
 
         return null;
@@ -108,10 +106,6 @@ public class CustomerRepository : ICustomerRepository
         DbDataReader reader = null;
         try
         {
-            if (_connection.State == System.Data.ConnectionState.Closed)
-            {
-                _connection.Open();
-            }
             DbCommand cmd = _connection.CreateCommand();
             cmd.CommandText = "SELECT * FROM Customer";
             cmd.Transaction = this._unitOfWork.Transaction;
@@ -141,7 +135,6 @@ public class CustomerRepository : ICustomerRepository
             {
                 reader.Close();
             }
-            _connection.Close();
         }
 
         return null;
