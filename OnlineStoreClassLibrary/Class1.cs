@@ -49,9 +49,9 @@
         public string CustomerName { get; set; } = null!;    
         public int? CustomerId { get; set; }                 
         public Customer? Customer { get; set; }
-
-        
         public List<OrderLine> Lines { get; } = new();
+        
+        
     }
 
    
@@ -68,6 +68,16 @@
 
         public int OrderId { get; set; }
         public CustomerOrder Order { get; set; } = null!;
+
+        public OrderLine(int orderLineId)
+        {
+            OrderId = orderLineId;
+        }
+
+        public OrderLine()
+        {
+            
+        }
     }
 
     
