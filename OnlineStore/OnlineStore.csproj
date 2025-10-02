@@ -17,4 +17,8 @@
       <ProjectReference Include="..\OnlineStoreClassLibrary\OnlineStoreClassLibrary.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <PackageReference Include="MySqlConnector" Version="2.4.0" />
+    </ItemGroup>
+
 </Project>

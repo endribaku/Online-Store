@@ -1,7 +1,10 @@
 ﻿
+using System.Data.Common;
+using MySqlConnector;
 using OnlineStoreClassLibrary;
 
 namespace OnlineStore;
+using System.Data.SqlClient;
 
 class Program
 {
@@ -10,16 +13,17 @@ class Program
         Console.Title = "Online Store";
         Console.ForegroundColor = ConsoleColor.Green;
         
-        List<Product> products = new List<Product>() // starter products
-        {
-            new Product("Laptop", 999.99m),
-            new Product("Smartphone", 699.50m),
-            new Product("Headphones", 149.95m),
-            new Product("Monitor", 229.99m),
-            new Product("Keyboard", 89.99m)
-        };
+       
+        //connection string
+        MySqlConnectorFactory factory = MySqlConnectorFactory.Instance;
+        MySqlConnectionStringBuilder mySqlConnectionStringBuilder = new MySqlConnectionStringBuilder();
+        mySqlConnectionStringBuilder.Server = "127.0.0.1";
+        mySqlConnectionStringBuilder.Port = 3306;
+        mySqlConnectionStringBuilder.UserID = "root";
+        mySqlConnectionStringBuilder.Password = "my-secret-pw";
+        mySqlConnectionStringBuilder.Database = "online_store";
         
-        OnlineStoreSystem system = new OnlineStoreSystem(products);
+        OnlineStoreSystem system = new OnlineStoreSystem(factory, mySqlConnectionStringBuilder.ConnectionString);
         bool isRunning = true;
         while (isRunning)
         {
@@ -72,7 +76,6 @@ class Program
                                     break;
                             }
                         }
-
                         break;
                     case "3":
                         bool onCartMenu = true;
@@ -138,15 +141,15 @@ class Program
 
     private static void DisplayProducts(OnlineStoreSystem system)
     {
-        List<ProductDto> products = system.GetProducts();
+        List<Product> products = system.GetProducts();
         if (products.Count == 0)
         {
             Console.WriteLine("No products found");
             return;
         }
-        foreach (ProductDto product in products)
+        foreach (Product product in products)
         {
-            Console.WriteLine($"Product Id: {product.Id} Name: {product.Name} Price: ({product.Price})");
+            Console.WriteLine($"Product Id: {product.ProductId} Name: {product.Name} Price: ({product.Price})");
         }
     }
 
@@ -206,15 +209,15 @@ class Program
 
     private static void DisplayCustomers(OnlineStoreSystem system)
     {
-        List < CustomerDto > customers = system.GetCustomers();
+        List <Customer> customers = system.GetCustomers();
         if (customers.Count == 0)
         {
             Console.WriteLine("No Customers found");
             return;
         }
-        foreach (CustomerDto customer in customers)
+        foreach (Customer customer in customers)
         {
-            Console.WriteLine($"Customer Id: {customer.Id} Name: {customer.Name}");
+            Console.WriteLine($"Customer Id: {customer.CustomerId} Name: {customer.FirstName} {customer.LastName}");
         }
     }
 
@@ -222,19 +225,27 @@ class Program
     {
         Console.WriteLine("Who would you like to add?");
         
-        string customerName = "";
-        bool validName = false;
-        while (!validName)
+        string customerFirstName = "";
+        string customerLastName = "";
+        bool validFirstName = false;
+        bool validLastName = false;
+        while (!validFirstName || !validLastName)
         {
-            Console.WriteLine("Enter customer name:");
-            customerName = Console.ReadLine()!;
-            if (customerName.Length > 0 && !system.CheckCustomerByName(customerName))
+            Console.WriteLine("Enter customer First name:");
+            customerFirstName = Console.ReadLine()!;
+            if (customerFirstName.Length > 0)
             {
-                validName = true;
+                validFirstName = true;
+            }
+            Console.WriteLine("Enter customer Last name:");
+            customerLastName = Console.ReadLine()!;
+            if (customerLastName.Length > 0)
+            {
+                validLastName = true;
             }
         }
         
-        system.AddCustomer(customerName);
+        system.AddCustomer(customerFirstName, customerLastName);
     }
 
     private static void SelectCustomerMenu(OnlineStoreSystem system)
@@ -249,7 +260,7 @@ class Program
             bool isInt = int.TryParse(customerOption, out var customerId);
             if (isInt && system.SelectActiveCustomer(customerId))
             {
-                Console.WriteLine("Customer selected");
+                Console.WriteLine("Customer selected with id {0}", customerId);
                 validId = true;
             }
             else
@@ -273,19 +284,20 @@ class Program
 
     private static void DisplayCart(OnlineStoreSystem system)
     {
-        List<CartItemDto> shoppingCart = system.GetActiveCustomerCart();
+        Cart shoppingCart = system.GetActiveCustomerCart();
         if (shoppingCart == null)
         {
             Console.WriteLine("No shopping cart. Select Customer");
-        } else if (shoppingCart.Count == 0)
+        } else if (shoppingCart.Items.Count == 0)
         {
             Console.WriteLine("Shopping cart is empty");
         }
         else
         {
-            foreach (CartItemDto shopping in shoppingCart)
+            Console.WriteLine("Cart Items count: {0}", shoppingCart.Items.Count);
+            foreach (CartItem shopping in shoppingCart.Items)
             {
-                Console.WriteLine($"Product Id: {shopping.Id} Name: {shopping.Name} Price: ({shopping.Price}) Quantity: {shopping.Quantity}");
+                Console.WriteLine($"Product Id: {shopping.ProductId} Name: {shopping.Product.Name} UnitPrice: ({shopping.Product.Price}) Quantity: {shopping.Quantity} Total:{shopping.Product.Price * shopping.Quantity}");
             }
         }
     }
@@ -293,6 +305,11 @@ class Program
     private static void AddToCart(OnlineStoreSystem system)
     {
         bool onCartMenu = true;
+        if (!system.HasActiveCustomer())
+        {
+            Console.WriteLine("No active customer");
+            return;
+        }
         
         while (onCartMenu)
         {
@@ -353,7 +370,7 @@ class Program
             return;
         }
         
-        OrderDto order = system.Checkout();
+        CustomerOrder order = system.Checkout();
         if (order == null)
         {
             Console.WriteLine("Shopping cart is empty, Order couldn't be placed.");
@@ -361,22 +378,22 @@ class Program
         else
         {
             Console.WriteLine("Order placed");
-            Console.WriteLine($"OrderId: {order.Id} Customer Name: {order.Customer.Name}, Total: {order.Total}, Date: {order.OrderDate}");
+            Console.WriteLine($"Customer Name: {order.CustomerName}, Total: {order.Total}, Date: {order.Date}");
         }
     }
 
     private static void DisplayOrders(OnlineStoreSystem system)
     {
-        List<OrderDto> orders = system.GetOrders();
+        List<CustomerOrder> orders = system.GetOrders();
         if (orders.Count == 0)
         {
             Console.WriteLine("No orders found.");
             return;
         }
 
-        foreach (OrderDto order in orders)
+        foreach (CustomerOrder order in orders)
         {
-            Console.WriteLine($"OrderId: {order.Id} Customer: {order.Customer.Name} Total: {order.Total} Date: {order.OrderDate}");
+            Console.WriteLine($"OrderId: {order.OrderId} Customer: {order.CustomerName} Total: {order.Total} Date: {order.Date}");
         }
         
     }
