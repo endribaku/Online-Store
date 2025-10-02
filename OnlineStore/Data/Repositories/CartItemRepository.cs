@@ -72,26 +72,15 @@ public class CartItemRepository: ICartItemRepository
             DbCommand cmd = _connection.CreateCommand();
             cmd.CommandText = "INSERT INTO CartItem(Quantity, ProductId, CartId) VALUES (@Quantity, @ProductId, @CartId)";
             cmd.Transaction = _unitOfWork.Transaction;
-
-            DbParameter quantityParameter = cmd.CreateParameter();
-            quantityParameter.ParameterName = "@Quantity";
-            quantityParameter.Value = cartItem.Quantity;
-
-            DbParameter productIdParameter = cmd.CreateParameter();
-            productIdParameter.ParameterName = "@ProductId";
-            productIdParameter.Value = cartItem.ProductId;
-
-            DbParameter cartIdParameter = cmd.CreateParameter();
-            cartIdParameter.ParameterName = "@CartId";
-            cartIdParameter.Value = cartItem.CartId;
-
-            cmd.Parameters.Add(quantityParameter);
-            cmd.Parameters.Add(productIdParameter);
-            cmd.Parameters.Add(cartIdParameter);
+            
+            ParameterHelper.AddParameter(cmd, "@Quantity", cartItem.Quantity);
+            ParameterHelper.AddParameter(cmd, "@ProductId", cartItem.ProductId);
+            ParameterHelper.AddParameter(cmd, "@CartId", cartItem.CartId);
+            
 
             cmd.ExecuteNonQuery();
         }
-        catch (Exception e)
+        catch (Exception)
         {
             Console.WriteLine("Failed to create cart item");
             throw;
@@ -104,18 +93,19 @@ public class CartItemRepository: ICartItemRepository
         {
             DbCommand cmd = _connection.CreateCommand();
             cmd.CommandText =
-                "UPDATE CartItem SET Quantity = @Quantity, ProductId = @ProductId, CartId = @CartId WHERE CartItemId = @CartId";
+                "UPDATE CartItem SET Quantity = @Quantity, ProductId = @ProductId, CartId = @CartId WHERE CartItemId = @CartItemId";
             cmd.Transaction = _unitOfWork.Transaction;
 
             
             ParameterHelper.AddParameter(cmd, "@Quantity", cartItem.Quantity);
             ParameterHelper.AddParameter(cmd, "@ProductId", cartItem.ProductId);
             ParameterHelper.AddParameter(cmd, "@CartId", cartItem.CartId);
+            ParameterHelper.AddParameter(cmd, "@CartItemId", cartItem.CartItemId);
             
 
             cmd.ExecuteNonQuery();
         }
-        catch (Exception e)
+        catch (Exception)
         {
             Console.WriteLine("Failed to update cart item");
             throw;
