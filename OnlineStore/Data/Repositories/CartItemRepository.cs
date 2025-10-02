@@ -107,21 +107,11 @@ public class CartItemRepository: ICartItemRepository
                 "UPDATE CartItem SET Quantity = @Quantity, ProductId = @ProductId, CartId = @CartId WHERE CartItemId = @CartId";
             cmd.Transaction = _unitOfWork.Transaction;
 
-            DbParameter quantityParameter = cmd.CreateParameter();
-            quantityParameter.ParameterName = "@Quantity";
-            quantityParameter.Value = cartItem.Quantity;
-
-            DbParameter productIdParameter = cmd.CreateParameter();
-            productIdParameter.ParameterName = "@ProductId";
-            productIdParameter.Value = cartItem.ProductId;
-
-            DbParameter cartIdParameter = cmd.CreateParameter();
-            cartIdParameter.ParameterName = "@CartId";
-            cartIdParameter.Value = cartItem.CartId;
-
-            cmd.Parameters.Add(quantityParameter);
-            cmd.Parameters.Add(productIdParameter);
-            cmd.Parameters.Add(cartIdParameter);
+            
+            ParameterHelper.AddParameter(cmd, "@Quantity", cartItem.Quantity);
+            ParameterHelper.AddParameter(cmd, "@ProductId", cartItem.ProductId);
+            ParameterHelper.AddParameter(cmd, "@CartId", cartItem.CartId);
+            
 
             cmd.ExecuteNonQuery();
         }
@@ -145,17 +135,10 @@ public class CartItemRepository: ICartItemRepository
             DbCommand cmd = _connection.CreateCommand();
             cmd.CommandText = "SELECT * FROM CartItem WHERE CartId = @CartId AND ProductId = @ProductId";
             cmd.Transaction = _unitOfWork.Transaction;
-
-            DbParameter cartIdParam = cmd.CreateParameter();
-            cartIdParam.ParameterName = "@CartId";
-            cartIdParam.Value = cartId;
-
-            DbParameter productIdParam = cmd.CreateParameter();
-            productIdParam.ParameterName = "@ProductId";
-            productIdParam.Value = productId;
-
-            cmd.Parameters.Add(cartIdParam);
-            cmd.Parameters.Add(productIdParam);
+            
+            ParameterHelper.AddParameter(cmd, "@CartId", cartId);
+            ParameterHelper.AddParameter(cmd, "@ProductId", productId);
+           
 
             reader = cmd.ExecuteReader();
             CartItem cartItem = null;
