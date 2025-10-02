@@ -1,6 +1,8 @@
 using System.Data.Common;
+using System.Reflection.Metadata;
 using MySqlConnector;
 using OnlineStore.Data.Repositories.Interfaces;
+using OnlineStore.Utilities;
 using OnlineStoreClassLibrary;
 
 namespace OnlineStore.Data.Repositories;
@@ -28,14 +30,7 @@ public class CartItemRepository: ICartItemRepository
             cmd.Transaction = _unitOfWork.Transaction;
 
             
-            DbParameter cartIdParam = cmd.CreateParameter();
-            cartIdParam.ParameterName = "@cartId";
-            cartIdParam.Value = cartId;
-            
-            
-            
-            
-            cmd.Parameters.Add(cartIdParam);
+            ParameterHelper.AddParameter(cmd, "@cartId", cartId);
 
             List<CartItem> cartItems = new List<CartItem>();
             
@@ -47,8 +42,8 @@ public class CartItemRepository: ICartItemRepository
                 cartItem.Quantity = int.Parse(reader["Quantity"].ToString()!);
                 cartItem.ProductId = int.Parse(reader["ProductId"].ToString()!);
                 Product product = new Product(cartItem.ProductId);
-                product.Name = reader["Name"].ToString();
-                product.Price = decimal.Parse(reader["Price"].ToString());
+                product.Name = reader["Name"].ToString()!;
+                product.Price = decimal.Parse(reader["Price"].ToString()!);
                 cartItem.Product = product;
                 cartItems.Add(cartItem);
             }

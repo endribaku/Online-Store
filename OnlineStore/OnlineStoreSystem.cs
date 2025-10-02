@@ -84,18 +84,6 @@ public class OnlineStoreSystem
         }
     }
 
-    public CustomerOrder PlaceOrder(Customer customer)
-    {
-        return null;
-    }
-    
-    
-
-    public bool CheckCustomerByName(string name)
-    {
-        return false;
-    }
-
     public bool SelectActiveCustomer(int id)
     {
         List < Customer > customers = GetCustomers();

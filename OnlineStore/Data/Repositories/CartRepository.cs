@@ -1,5 +1,6 @@
 using System.Data.Common;
 using OnlineStore.Data.Repositories.Interfaces;
+using OnlineStore.Utilities;
 using OnlineStoreClassLibrary;
 
 namespace OnlineStore.Data.Repositories;
@@ -22,11 +23,8 @@ public class CartRepository : ICartRepository
             DbCommand cmd = _connection.CreateCommand();
             cmd.CommandText = "INSERT INTO Cart (CustomerId) VALUES (@CustomerId)";
             cmd.Transaction = this._unitOfWork.Transaction;
-
-            DbParameter customerIdParam = cmd.CreateParameter();
-            customerIdParam.ParameterName = "@CustomerId";
-            customerIdParam.Value = cart.CustomerId;
-            cmd.Parameters.Add(customerIdParam);
+            
+            ParameterHelper.AddParameter(cmd, "@CustomerId", cart.CustomerId);
 
             cmd.ExecuteNonQuery();
         }

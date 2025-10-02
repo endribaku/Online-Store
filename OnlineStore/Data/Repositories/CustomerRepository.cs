@@ -45,10 +45,10 @@ public class CustomerRepository : ICustomerRepository
         {
             DbCommand cmd = _connection.CreateCommand();
             cmd.CommandText = "DELETE FROM Customer WHERE CustomerId = @customerId";
-            DbParameter idParam = cmd.CreateParameter();
-            idParam.ParameterName = "@customerId";
-            idParam.Value = customerId;
-            cmd.Parameters.Add(idParam);
+            cmd.Transaction = this._unitOfWork.Transaction;
+            
+            ParameterHelper.AddParameter(cmd, "@customerId", customerId);
+            
             cmd.ExecuteNonQuery();
         }
         catch (Exception)
@@ -68,11 +68,8 @@ public class CustomerRepository : ICustomerRepository
             cmd.CommandText = "SELECT * FROM Customer WHERE CustomerId = @customerId";
             cmd.Transaction = this._unitOfWork.Transaction;
             
-            DbParameter customerIdParam = cmd.CreateParameter();
-            customerIdParam.ParameterName = "@customerId";
-            customerIdParam.Value = customerId;
+            ParameterHelper.AddParameter(cmd, "@customerId", customerId);
             
-            cmd.Parameters.Add(customerIdParam);
             
             reader = cmd.ExecuteReader();
             Customer customer = new Customer();

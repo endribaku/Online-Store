@@ -1,5 +1,6 @@
 using System.Data.Common;
 using OnlineStore.Data.Repositories.Interfaces;
+using OnlineStore.Utilities;
 using OnlineStoreClassLibrary;
 namespace OnlineStore.Data.Repositories;
 
@@ -57,12 +58,8 @@ public class ProductRepository: IProductRepository
             DbCommand cmd = _connection.CreateCommand();
             cmd.CommandText = "SELECT *  FROM Product WHERE ProductId = @ProductId";
             cmd.Transaction = this._unitOfWork.Transaction;
-
-            DbParameter productIdParam = cmd.CreateParameter();
-            productIdParam.ParameterName = "@ProductId";
-            productIdParam.Value = id;
-
-            cmd.Parameters.Add(productIdParam);
+            
+            ParameterHelper.AddParameter(cmd, "@ProductId", id);
 
             reader = cmd.ExecuteReader();
 
@@ -99,17 +96,9 @@ public class ProductRepository: IProductRepository
             DbCommand cmd = _connection.CreateCommand();
             cmd.CommandText = "INSERT INTO Product (Name, Price) VALUES (@Name, @Price)";
             cmd.Transaction = this._unitOfWork.Transaction;
-
-            DbParameter productNameParameter = cmd.CreateParameter(); //name param
-            productNameParameter.ParameterName = "@Name";
-            productNameParameter.Value = product.Name;
-
-            DbParameter productPriceParameter = cmd.CreateParameter(); //price param
-            productPriceParameter.ParameterName = "@Price";
-            productPriceParameter.Value = product.Price;
-
-            cmd.Parameters.Add(productNameParameter);
-            cmd.Parameters.Add(productPriceParameter);
+            
+            ParameterHelper.AddParameter(cmd, "@Name", product.Name);
+            ParameterHelper.AddParameter(cmd, "@Price", product.Price);
 
             cmd.ExecuteNonQuery();
         }
