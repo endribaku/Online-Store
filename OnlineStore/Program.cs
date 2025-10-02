@@ -285,7 +285,6 @@ class Program
     private static void DisplayCart(OnlineStoreSystem system)
     {
         Cart shoppingCart = system.GetActiveCustomerCart();
-        Console.WriteLine("Cart items count: " + shoppingCart.Items.Count);
         if (shoppingCart == null)
         {
             Console.WriteLine("No shopping cart. Select Customer");
@@ -295,6 +294,7 @@ class Program
         }
         else
         {
+            Console.WriteLine("Cart Items count: {0}", shoppingCart.Items.Count);
             foreach (CartItem shopping in shoppingCart.Items)
             {
                 Console.WriteLine($"Product Id: {shopping.ProductId} Name: {shopping.Product.Name} UnitPrice: ({shopping.Product.Price}) Quantity: {shopping.Quantity} Total:{shopping.Product.Price * shopping.Quantity}");
@@ -305,6 +305,11 @@ class Program
     private static void AddToCart(OnlineStoreSystem system)
     {
         bool onCartMenu = true;
+        if (!system.HasActiveCustomer())
+        {
+            Console.WriteLine("No active customer");
+            return;
+        }
         
         while (onCartMenu)
         {
