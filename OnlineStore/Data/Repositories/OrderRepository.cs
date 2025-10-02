@@ -21,10 +21,9 @@ public class OrderRepository : IOrderRepository
         {
             DbCommand command = _connection.CreateCommand();
             command.CommandText =
-                "INSERT INTO CustomerOrder(Date, Total, CustomerName, CustomerId) VALUES (@Date, @Total, @CustomerName, @CustomerId)";
+                "INSERT INTO CustomerOrder(Total, CustomerName, CustomerId) VALUES (@Total, @CustomerName, @CustomerId)";
             command.Transaction = _unitOfWork.Transaction;
-
-            ParameterHelper.AddParameter(command, "@Date", order.Date);
+            
             ParameterHelper.AddParameter(command, "@Total", order.Total);
             ParameterHelper.AddParameter(command, "@CustomerName", order.CustomerName);
             ParameterHelper.AddParameter(command, "@CustomerId", order.CustomerId);
@@ -62,7 +61,7 @@ public class OrderRepository : IOrderRepository
             while (reader.Read())
             {
                 CustomerOrder order = new CustomerOrder(int.Parse(reader["OrderId"].ToString())!,
-                    DateTime.Parse(reader["Date"].ToString()!));
+                    reader.GetDateTime(reader.GetOrdinal("Date")));
                 order.CustomerId = int.Parse(reader["CustomerId"].ToString()!);
                 order.CustomerName = reader["CustomerName"].ToString()!;
                 order.Total = decimal.Parse(reader["Total"].ToString()!);

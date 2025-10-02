@@ -43,11 +43,9 @@ public class CartRepository : ICartRepository
             DbCommand cmd = _connection.CreateCommand();
             cmd.CommandText = "SELECT * FROM Cart WHERE CustomerId = @CustomerId";
             cmd.Transaction = this._unitOfWork.Transaction;
-
-            DbParameter customerIdParam = cmd.CreateParameter();
-            customerIdParam.ParameterName = "@CustomerId";
-            customerIdParam.Value = customerId;
-            cmd.Parameters.Add(customerIdParam);
+            
+            ParameterHelper.AddParameter(cmd, "@CustomerId", customerId);
+            
 
             reader = cmd.ExecuteReader();
             Cart cart = null;

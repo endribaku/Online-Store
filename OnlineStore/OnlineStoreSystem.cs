@@ -231,28 +231,26 @@ public class OnlineStoreSystem
                 cartItem.ProductId = productId;
                 cartItem.Quantity = quantity;
                 cartItem.CartId = GetActiveCustomerCart().CartId;
+                CartItem item = GetActiveCustomerCart().Items.Find(existingItem => existingItem.ProductId == productId)!;
+                if (item == null)
+                {
+                    uow.CartItems.CreateCartItem(cartItem);
+                }
+                else
+                {
+                    item.Quantity = quantity;
+                    uow.CartItems.UpdateCartItem(cartItem);
+                }
                 
-                uow.CartItems.CreateCartItem(cartItem);
+                
                 uow.Commit();
                 return true;
             }
             catch (Exception e)
             {
-                if (e.Message.Contains("Duplicate entry"))
-                {
-                    Console.WriteLine("Entry already exists. Updating quantity...");
-                    CartItem item = GetActiveCustomerCart().Items.Find(existingItem => existingItem.ProductId == productId)!; 
-                    item.Quantity = quantity;
-                    uow.CartItems.UpdateCartItem(item);
-                    uow.Commit();
-                    return true;
-                }
-                else
-                {
-                    uow.Rollback();
-                    return false;
-                }
-                
+                uow.Rollback();
+                return false;
+
             }
         }
     }
