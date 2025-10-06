@@ -23,6 +23,8 @@ class Program
         mySqlConnectionStringBuilder.Password = "my-secret-pw";
         mySqlConnectionStringBuilder.Database = "online_store";
         
+        Console.WriteLine(mySqlConnectionStringBuilder.ConnectionString);
+        
         OnlineStoreSystem system = new OnlineStoreSystem(factory, mySqlConnectionStringBuilder.ConnectionString);
         bool isRunning = true;
         while (isRunning)
