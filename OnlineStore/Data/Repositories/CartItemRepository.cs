@@ -3,7 +3,6 @@ using System.Reflection.Metadata;
 using MySqlConnector;
 using OnlineStore.Data.Repositories.Interfaces;
 using OnlineStore.Utilities;
-using OnlineStoreClassLibrary;
 
 namespace OnlineStore.Data.Repositories;
 
@@ -37,11 +36,14 @@ public class CartItemRepository: ICartItemRepository
             reader = cmd.ExecuteReader();
             while (reader.Read())
             {
-                CartItem cartItem = new CartItem(int.Parse(reader["CartItemId"].ToString()!));
+
+                CartItem cartItem = new CartItem();
+                cartItem.CartItemId = int.Parse(reader["CartItemId"].ToString()!);
                 cartItem.CartId = int.Parse(reader["CartId"].ToString()!);
                 cartItem.Quantity = int.Parse(reader["Quantity"].ToString()!);
                 cartItem.ProductId = int.Parse(reader["ProductId"].ToString()!);
-                Product product = new Product(cartItem.ProductId);
+                Product product = new Product();
+                product.ProductId = cartItem.ProductId;
                 product.Name = reader["Name"].ToString()!;
                 product.Price = decimal.Parse(reader["Price"].ToString()!);
                 cartItem.Product = product;
@@ -134,7 +136,8 @@ public class CartItemRepository: ICartItemRepository
             CartItem cartItem = null;
             if (reader.Read())
             {
-                cartItem = new CartItem(int.Parse(reader["CartItemId"].ToString()!));
+                cartItem = new CartItem();
+                cartItem.CartItemId = int.Parse(reader["CartItemId"].ToString()!);
                 cartItem.Quantity = int.Parse(reader["Quantity"].ToString()!);
                 cartItem.ProductId = int.Parse(reader["ProductId"].ToString()!);
                 cartItem.CartId = int.Parse(reader["CartId"].ToString()!);

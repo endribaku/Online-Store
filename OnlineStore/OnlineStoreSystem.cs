@@ -4,7 +4,7 @@ using OnlineStore.Data.Repositories;
 using OnlineStore.Data.Repositories.Interfaces;
 
 namespace OnlineStore;
-using OnlineStoreClassLibrary;
+
 public class OnlineStoreSystem
 {
     private DbProviderFactory _providerFactory;
@@ -178,7 +178,7 @@ public class OnlineStoreSystem
             {
                 cart = uow.Carts.GetCartById(_activeCustomerId);
                 List<CartItem> cartItems = uow.CartItems.GetCartItems(cart.CartId);
-                cart.Items = cartItems;
+                cart.CartItems = cartItems;
                 uow.Commit();
             }
             catch (Exception e)
@@ -231,7 +231,7 @@ public class OnlineStoreSystem
                 cartItem.ProductId = productId;
                 cartItem.Quantity = quantity;
                 cartItem.CartId = GetActiveCustomerCart().CartId;
-                CartItem item = GetActiveCustomerCart().Items.Find(existingItem => existingItem.ProductId == productId)!;
+                CartItem item = GetActiveCustomerCart().CartItems.Find(existingItem => existingItem.ProductId == productId)!;
                 if (item == null)
                 {
                     uow.CartItems.CreateCartItem(cartItem);
@@ -269,7 +269,7 @@ public class OnlineStoreSystem
             try
             {
                 Customer customer = uow.Customers.GetCustomerById(_activeCustomerId);
-                List<CartItem> items = GetActiveCustomerCart().Items;
+                List<CartItem> items = GetActiveCustomerCart().CartItems;
                 if (items.Count == 0)
                 {
                     return null;

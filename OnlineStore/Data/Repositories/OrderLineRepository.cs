@@ -1,7 +1,6 @@
 using System.Data.Common;
 using System.Reflection.Metadata;
 using OnlineStore.Data.Repositories.Interfaces;
-using OnlineStoreClassLibrary;
 using OnlineStore.Utilities;
 namespace OnlineStore.Data.Repositories;
 
@@ -73,7 +72,8 @@ public class OrderLineRepository: IOrderLineRepository
             List<OrderLine> lines = new List<OrderLine>();
             while (reader.Read())
             {
-                OrderLine orderLine = new OrderLine(int.Parse(reader["OrderLineId"].ToString()!));
+                OrderLine orderLine = new OrderLine();
+                orderLine.OrderLineId = int.Parse(reader["OrderLineId"].ToString()!);
                 orderLine.Quantity = int.Parse(reader["Quantity"].ToString()!);
                 orderLine.UnitPrice = decimal.Parse(reader["UnitPrice"].ToString()!);
                 orderLine.LineTotal = decimal.Parse(reader["LineTotal"].ToString()!);

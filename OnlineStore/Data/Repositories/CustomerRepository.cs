@@ -1,7 +1,7 @@
 using System.Data.Common;
 using OnlineStore.Data.Repositories.Interfaces;
 using OnlineStore.Utilities;
-using OnlineStoreClassLibrary;
+
 namespace OnlineStore.Data.Repositories;
 
 public class CustomerRepository : ICustomerRepository

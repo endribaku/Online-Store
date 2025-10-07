@@ -1,7 +1,6 @@
 ﻿
 using System.Data.Common;
 using MySqlConnector;
-using OnlineStoreClassLibrary;
 
 namespace OnlineStore;
 using System.Data.SqlClient;
