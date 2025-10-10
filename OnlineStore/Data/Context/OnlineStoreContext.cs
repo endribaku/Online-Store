@@ -91,7 +91,7 @@ public partial class OnlineStoreContext : DbContext
             entity.Property(e => e.CustomerName).HasMaxLength(255);
             entity.Property(e => e.Date)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp");
+                .HasColumnType("timestamp");    
             entity.Property(e => e.Total).HasPrecision(18, 2);
 
             entity.HasOne(d => d.Customer).WithMany(p => p.CustomerOrders)
