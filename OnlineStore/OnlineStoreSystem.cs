@@ -1,41 +1,36 @@
 using System.Collections.ObjectModel;
 using System.Data.Common;
+using Microsoft.EntityFrameworkCore;
 using OnlineStore.Data.Repositories;
 using OnlineStore.Data.Repositories.Interfaces;
 
 namespace OnlineStore;
-using OnlineStoreClassLibrary;
+
 public class OnlineStoreSystem
 {
-    private DbProviderFactory _providerFactory;
-    private string _connectionString;
     private int _activeCustomerId = -1; // id in DB Schema starts from 1 and auto increments by 1
 
-    public OnlineStoreSystem(DbProviderFactory factory, string connectionString)
+    public OnlineStoreSystem()
     {
-       this._providerFactory = factory;
-       this._connectionString = connectionString;
     }
     
     public bool AddProduct(string name, decimal price)
     {
-        using (IUnitOfWork uow = new UnitOfWork(this._providerFactory, this._connectionString))
+        using (var context = new OnlineStoreContext())
         {
             try
             {
-                Product newProduct = new Product();
-                newProduct.Name = name;
-                newProduct.Price = price;
-                uow.Products.CreateProduct(newProduct);
-                uow.Commit();
+                Product product = new Product() {Name = name, Price = price};
+                context.Products.Add(product);
+                context.SaveChanges();
                 return true;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                Console.WriteLine(ex.Message);
-                uow.Rollback();
+                Console.WriteLine("Error while trying to add product");
                 return false;
             }
+            
         }
     }
 
@@ -46,40 +41,65 @@ public class OnlineStoreSystem
 
     public void AddCustomer(string firstName, string lastName)
     {
-        using (IUnitOfWork uow = new UnitOfWork(this._providerFactory,  this._connectionString))
+        using (var context = new OnlineStoreContext())
         {
             try
             {
-                Customer newCustomer = new Customer();
-                newCustomer.FirstName = firstName;
-                newCustomer.LastName = lastName;
-                uow.Customers.AddCustomer(newCustomer);
-                
-                
-                
-                DbCommand lastInsertedCommand = uow.Connection.CreateCommand();
-                lastInsertedCommand.CommandText = "SELECT LAST_INSERT_ID() AS id_value"; // this command will likely be a util function in the future
-                lastInsertedCommand.Transaction = uow.Transaction;
-                DbDataReader reader = lastInsertedCommand.ExecuteReader();
-                int customerId = -1;
-                while (reader.Read())
+                Cart cart = new Cart()
                 {
-                   customerId = int.Parse(reader["id_value"].ToString()!);
-                }
-                
-                reader.Close();
-                
-                //adding cart needed before committing the transaction (DONE)
-                Cart newCart = new Cart();
-                newCart.CustomerId = customerId;
-                uow.Carts.CreateCart(newCart);
-                
-                uow.Commit();
+                    Customer = new Customer() { FirstName = firstName, LastName = lastName }
+                };
+                    
+                context.Carts.Add(cart);
+                context.SaveChanges();
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                Console.WriteLine(ex.Message);
-                uow.Rollback();
+                Console.WriteLine("Error while trying to add customer");
+                throw;
+            }
+        }
+    }
+
+    public bool CheckCustomerById(int customerId)
+    {
+        using (var context = new OnlineStoreContext())
+        {
+            try
+            {
+                Customer customer = context.Customers.SingleOrDefault(c => c.CustomerId == customerId);
+                if (customer != null)
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            catch (Exception)
+            {
+                Console.WriteLine("Error while trying to find customer");
+                throw;
+            }
+            
+        }
+    }
+
+    public void DeleteCustomer(int customerId)
+    {
+        using (var context = new OnlineStoreContext())
+        {
+            try
+            {
+                Customer customer = context.Customers.SingleOrDefault(c => c.CustomerId == customerId);
+                context.Customers.Remove(customer);
+                context.SaveChanges();
+            }
+            catch (Exception)
+            {
+                Console.WriteLine("Error while trying to delete customer");
+                throw;
             }
         }
     }
@@ -97,18 +117,9 @@ public class OnlineStoreSystem
     public List<Product> GetProducts()
     {
         List<Product> products = new List<Product>();
-        using (IUnitOfWork uow = new UnitOfWork(this._providerFactory, this._connectionString))
+        using (var context = new OnlineStoreContext())
         {
-            try
-            {
-                products = uow.Products.GetProducts();
-                uow.Commit();
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e.Message);
-                uow.Rollback();
-            }
+            products = context.Products.ToList();
         }
 
         return products;
@@ -117,18 +128,9 @@ public class OnlineStoreSystem
     public List<Customer> GetCustomers()
     {
         List<Customer> customers = new List<Customer>();
-        using (IUnitOfWork uow = new UnitOfWork(this._providerFactory,  this._connectionString))
+        using (var context = new OnlineStoreContext())
         {
-            try
-            {
-                customers = uow.Customers.GetCustomers();
-                uow.Commit();
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e.Message);
-                uow.Rollback();
-            }
+            customers = context.Customers.AsNoTracking().ToList();
         }
 
         return customers;
@@ -138,18 +140,9 @@ public class OnlineStoreSystem
     public List<CustomerOrder> GetOrders()
     {
         List<CustomerOrder> orders = new List<CustomerOrder>();
-        using (IUnitOfWork uow = new UnitOfWork(this._providerFactory, this._connectionString))
+        using (var context = new OnlineStoreContext())
         {
-            try
-            {
-                orders = uow.Orders.GetOrders();
-                uow.Commit();
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e.Message);
-                uow.Rollback();
-            }
+            orders = context.CustomerOrders.AsNoTracking().ToList();
         }
 
         return orders;
@@ -157,12 +150,22 @@ public class OnlineStoreSystem
 
     public bool HasActiveCustomer()
     {
-        if (_activeCustomerId < 1)
+        List<Customer> customers = GetCustomers();
+
+        if (customers.Find(c => c.CustomerId == _activeCustomerId) != null)
+        {
+            return true;
+        }
+        else
         {
             return false;
         }
+    }
 
-        return true;
+    public bool IsActiveCustomer(int customerId)
+    {
+        if(_activeCustomerId == customerId)  return true;
+        return false;
     }
     
     public Cart GetActiveCustomerCart()
@@ -172,20 +175,23 @@ public class OnlineStoreSystem
             return null;
         }
         Cart cart = new Cart();
-        using (IUnitOfWork uow = new UnitOfWork(this._providerFactory, this._connectionString))
+        using (var context = new OnlineStoreContext())
         {
             try
             {
-                cart = uow.Carts.GetCartById(_activeCustomerId);
-                List<CartItem> cartItems = uow.CartItems.GetCartItems(cart.CartId);
-                cart.Items = cartItems;
-                uow.Commit();
+                cart = context.Carts.AsNoTracking().Include(c=> c.CartItems).SingleOrDefault(c => c.CustomerId == _activeCustomerId)!;
+                foreach (var item in cart.CartItems)
+                {
+                    item.Product = context.Products.AsNoTracking().FirstOrDefault(p => p.ProductId == item.ProductId)!;
+                }
+
+                cart.Customer = context.Customers.FirstOrDefault(c => c.CustomerId == _activeCustomerId)!;
             }
-            catch (Exception e)
+            catch (Exception)
             {
-                Console.WriteLine(e.Message);
-                uow.Rollback();
+                Console.WriteLine("Error while trying to get cart");
             }
+            
         }
         
         return cart;
@@ -193,25 +199,38 @@ public class OnlineStoreSystem
 
     public bool CheckProductById(int id)
     {
-        using (IUnitOfWork uow = new UnitOfWork(this._providerFactory, this._connectionString))
+        using (var context = new OnlineStoreContext())
         {
-            try
-            {
-                Product product = uow.Products.GetProductById(id);
-                uow.Commit();
-                if (product != null)
+            Product product = context.Products.SingleOrDefault(p => p.ProductId == id)!;
+            if (product == null)
+                {
+                    Console.WriteLine("Couldn't find product by specified productId");
+                    return false;
+                }
+            else
                 {
                     return true;
                 }
+        }
+    }
 
-                return false;
-            }
-            catch (Exception e)
+    public bool DeleteProduct(int id)
+    {
+        using (var context = new OnlineStoreContext())
+        {
+            try
             {
-                Console.WriteLine(e.Message);
-                uow.Rollback();
+                Product product = context.Products.SingleOrDefault(p => p.ProductId == id)!;
+                context.Products.Remove(product);
+                context.SaveChanges();
+                return true;
+            }
+            catch (Exception)
+            {
+                Console.WriteLine("Error while trying to delete product");
                 return false;
             }
+            
         }
     }
 
@@ -221,37 +240,84 @@ public class OnlineStoreSystem
         {
             return false;
         }
-        CartItem cartItem = new CartItem();
-        int cartItemId = -1;
-        using (IUnitOfWork uow = new UnitOfWork(this._providerFactory, this._connectionString))
+        
+        Cart cart = GetActiveCustomerCart();
+        
+        using (var context = new OnlineStoreContext())
         {
             try
             {
-                cartItem = new CartItem();
-                cartItem.ProductId = productId;
-                cartItem.Quantity = quantity;
-                cartItem.CartId = GetActiveCustomerCart().CartId;
-                CartItem item = GetActiveCustomerCart().Items.Find(existingItem => existingItem.ProductId == productId)!;
-                if (item == null)
+                CartItem cartItem =
+                    context.CartItems.SingleOrDefault(item =>
+                        item.ProductId == productId && item.CartId == cart.CartId);
+                if (cartItem == null)
                 {
-                    uow.CartItems.CreateCartItem(cartItem);
+                    cartItem = new CartItem() { ProductId = productId, CartId = cart.CartId, Quantity = quantity };
+                    context.CartItems.Add(cartItem);
+                    context.SaveChanges();
                 }
                 else
                 {
-                    item.Quantity = quantity;
-                    uow.CartItems.UpdateCartItem(cartItem);
+                    cartItem.Quantity = quantity;
+                    context.SaveChanges();
                 }
-                
-                
-                uow.Commit();
+
                 return true;
             }
-            catch (Exception e)
+            catch (Exception)
             {
-                uow.Rollback();
+                Console.WriteLine("Error while trying to add to cart");
                 return false;
-
             }
+        }
+    }
+
+    public bool CheckCartItemById(int cartItemId)
+    {
+        Cart cart = GetActiveCustomerCart();
+
+        if (cart.CartItems.SingleOrDefault(item => item.CartItemId == cartItemId) != null)
+        {
+            return true;
+        } else
+        {
+            return false;
+        }
+    }
+
+    
+
+    public bool DeleteCartItemById(int cartItemId)
+    {
+        if (!HasActiveCustomer())
+        {
+            return false;
+        }
+        using (var context = new OnlineStoreContext())
+        {
+            try
+            {
+                Cart cart = context.Carts.Include(c=> c.CartItems).SingleOrDefault(c => c.CustomerId == _activeCustomerId)!;
+                if (cart == null)
+                {
+                    return false;
+                }
+                
+                CartItem itemToDelete =
+                    cart.CartItems.SingleOrDefault(item =>
+                        item.CartItemId == cartItemId)
+                    !; // we already check if carditem exists in cart in CheckCartItemById method
+                context.CartItems.Remove(itemToDelete);
+                context.SaveChanges();
+                return true;
+            }
+            catch (Exception)
+            {
+                Console.WriteLine("Error while trying to delete cart");
+                throw;
+                
+            }
+            
         }
     }
 
@@ -263,31 +329,52 @@ public class OnlineStoreSystem
         }
 
         CustomerOrder order = null;
-
-        using (IUnitOfWork uow = new UnitOfWork(this._providerFactory, this._connectionString))
+        Cart cart = GetActiveCustomerCart();
+        
+        
+        Console.WriteLine(cart.CartItems.First().ProductId);
+        using (var context = new OnlineStoreContext())
         {
             try
             {
-                Customer customer = uow.Customers.GetCustomerById(_activeCustomerId);
-                List<CartItem> items = GetActiveCustomerCart().Items;
-                if (items.Count == 0)
+                if (cart.CartItems.Count == 0)
                 {
+                    Console.WriteLine("Cart is empty");
                     return null;
                 }
-                Decimal totalPrice = items.Sum(item => item.Product.Price * item.Quantity);
 
-                order = new CustomerOrder(DateTime.Now);
-                order.Total = totalPrice;
-                order.CustomerId = _activeCustomerId;
-                order.CustomerName = customer.FirstName + " " + customer.LastName;
+                var cartItemsToDelete = context.CartItems.Include(c => c.Product).Where(c => c.CartId == cart.CartId)
+                    .ToList();
+                context.CartItems.RemoveRange(cartItemsToDelete);
+                
 
-                uow.Orders.CreateOrder(order);
-                uow.Commit();
+                order = new CustomerOrder()
+                {
+                    CustomerId = cart.CustomerId,
+                    CustomerName = cart.Customer.FirstName + " " + cart.Customer.LastName,
+                };
+
+                foreach (var cartItem in cartItemsToDelete)
+                {
+                    OrderLine orderLine = new OrderLine()
+                    {
+                        ProductId = cartItem.ProductId,
+                        Quantity = cartItem.Quantity,
+                        ProductName = cartItem.Product.Name,
+                        LineTotal = cartItem.Product!.Price * cartItem.Quantity,
+                        UnitPrice = cartItem.Product.Price
+                    };
+                    order.OrderLines.Add(orderLine);
+                }
+
+                order.Date = DateTime.Now;
+                order.Total = order.OrderLines.Sum(ol => ol.LineTotal);
+                context.CustomerOrders.Add(order);
+                context.SaveChanges();
             }
-            catch (Exception e)
+            catch (Exception)
             {
-                Console.WriteLine(e.Message);
-                uow.Rollback();
+                Console.WriteLine("Error while trying to checkout");
             }
         }
 

@@ -1,7 +1,7 @@
 using System.Data.Common;
 using OnlineStore.Data.Repositories.Interfaces;
 using OnlineStore.Utilities;
-using OnlineStoreClassLibrary;
+
 namespace OnlineStore.Data.Repositories;
 
 public class ProductRepository: IProductRepository
@@ -27,7 +27,8 @@ public class ProductRepository: IProductRepository
             List<Product> products = new List<Product>();
             while (reader.Read())
             {
-                Product product = new Product(int.Parse(reader["ProductId"].ToString()!));
+                Product product = new Product();
+                product.ProductId = int.Parse(reader["ProductId"].ToString()!);
                 product.Name = reader["Name"].ToString()!;
                 product.Price = decimal.Parse(reader["Price"].ToString()!);
 
@@ -65,7 +66,8 @@ public class ProductRepository: IProductRepository
 
             if (reader.Read())
             {
-                Product product = new Product(int.Parse(reader["productId"].ToString()!));
+                Product product = new Product();
+                product.ProductId = int.Parse(reader["productId"].ToString()!);
                 product.Name = reader["Name"].ToString()!;
                 product.Price = decimal.Parse(reader["Price"].ToString()!);
                 

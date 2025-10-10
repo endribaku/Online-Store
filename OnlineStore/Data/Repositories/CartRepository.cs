@@ -1,7 +1,6 @@
 using System.Data.Common;
 using OnlineStore.Data.Repositories.Interfaces;
 using OnlineStore.Utilities;
-using OnlineStoreClassLibrary;
 
 namespace OnlineStore.Data.Repositories;
 
@@ -51,7 +50,8 @@ public class CartRepository : ICartRepository
             Cart cart = null;
             while (reader.Read())
             {
-                cart = new Cart(int.Parse(reader["CartId"].ToString()!));
+                cart = new Cart();
+                cart.CartId = int.Parse(reader["CartId"].ToString()!);
                 cart.CustomerId = int.Parse(reader["CustomerId"].ToString()!);
             }
 

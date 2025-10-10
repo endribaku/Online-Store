@@ -1,7 +1,5 @@
-using OnlineStoreClassLibrary;
-
 namespace OnlineStore.Data.Repositories.Interfaces;
-using OnlineStoreClassLibrary;
+
 public interface ICartRepository
 {
     IEnumerable<Cart> GetCarts();

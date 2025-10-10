@@ -1,7 +1,8 @@
 ﻿
 using System.Data.Common;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Internal;
 using MySqlConnector;
-using OnlineStoreClassLibrary;
 
 namespace OnlineStore;
 using System.Data.SqlClient;
@@ -25,7 +26,8 @@ class Program
         
         Console.WriteLine(mySqlConnectionStringBuilder.ConnectionString);
         
-        OnlineStoreSystem system = new OnlineStoreSystem(factory, mySqlConnectionStringBuilder.ConnectionString);
+        
+        OnlineStoreSystem system = new OnlineStoreSystem();
         bool isRunning = true;
         while (isRunning)
         {
@@ -53,6 +55,9 @@ class Program
                                 case "2":
                                     AddProductMenu(system);
                                     break;
+                                case "3":
+                                    DeleteProductMenu(system);
+                                    break;
                             }
                         }
 
@@ -76,6 +81,9 @@ class Program
                                 case "3":
                                     SelectCustomerMenu(system);
                                     break;
+                                case "4":
+                                    DeleteCustomerMenu(system);
+                                    break;
                             }
                         }
                         break;
@@ -96,6 +104,9 @@ class Program
                                     AddToCart(system);
                                     break;
                                 case "3":
+                                    DeleteInCart(system);
+                                    break;
+                                case "4":
                                     Checkout(system);
                                     break;
                             }
@@ -136,6 +147,7 @@ class Program
         Console.WriteLine("[0] Exit");
         Console.WriteLine("[1] Display Products");
         Console.WriteLine("[2] Add Product");
+        Console.WriteLine("[3] Delete Product");
 
         return Console.ReadLine()!;
     }
@@ -197,6 +209,45 @@ class Program
         system.AddProduct(productName, productPriceDecimal);
     }
 
+    private static void DeleteProductMenu(OnlineStoreSystem system)
+    {
+        List<Product> products = system.GetProducts();
+        if (products.Count == 0)
+        {
+            Console.WriteLine("No products found");
+            return;
+        }
+        
+        Console.WriteLine("What would you like to delete?");
+        DisplayProducts(system);
+
+        int productId;
+        bool validId = false;
+        while (!validId)
+        {
+            Console.WriteLine("Enter product id to delete:");
+            Console.WriteLine("Press 0 to exit");
+            String productIdInput = Console.ReadLine();
+
+            if (productIdInput == "0")
+            {
+                return;
+            }
+            
+            bool isInt = int.TryParse(productIdInput, out productId);
+            if (isInt && system.CheckProductById(productId))
+            {
+                system.DeleteProduct(productId);
+                validId = true;
+            }
+            else
+            {
+                Console.WriteLine("Invalid product id");
+            }
+        }
+
+    }
+
     private static string ShowCustomerMenu()
     {
         Console.WriteLine("What would you like to do?");
@@ -204,7 +255,7 @@ class Program
         Console.WriteLine("[1] Display Customers");
         Console.WriteLine("[2] Add Customer");
         Console.WriteLine("[3] Select Customer");
-
+        Console.WriteLine("[4] Delete Customer");
         
         return Console.ReadLine()!;
     }
@@ -272,13 +323,58 @@ class Program
         }
     }
 
+    private static void DeleteCustomerMenu(OnlineStoreSystem system)
+    {
+        List <Customer> customers = system.GetCustomers();
+        if (customers.Count == 0)
+        {
+            Console.WriteLine("No Customers found");
+            return;
+        }
+        
+        int customerId;
+        bool validId = false;
+        while (!validId)
+        {
+            Console.WriteLine("Enter customer id to delete:");
+            Console.WriteLine("Press 0 to exit");
+            DisplayCustomers(system);
+            string customerIdInput = Console.ReadLine();
+
+            if (customerIdInput == "0")
+            {
+                return;
+            }
+            
+            bool isInt = int.TryParse(customerIdInput, out customerId);
+            if (isInt && system.CheckCustomerById(customerId))
+            {
+                if (!system.IsActiveCustomer(customerId))
+                {
+                    validId = true;
+                    system.DeleteCustomer(customerId);
+                }
+                else
+                {
+                    Console.WriteLine("Customer is already active, please switch to another one if you want to delete this customer");
+                }
+            }
+            else
+            {
+                Console.WriteLine("Invalid id");
+            }
+        }
+    }
+
     private static string ShowCartMenu()
     {
         Console.WriteLine("What would you like to cart?");
         Console.WriteLine("[0] Exit");
         Console.WriteLine("[1] Display Cart");
         Console.WriteLine("[2] Add To Cart");
-        Console.WriteLine("[3] Checkout");
+        Console.WriteLine("[3] Delete Item");
+        Console.WriteLine("[4] Checkout");
+        
 
         return Console.ReadLine()!;
 
@@ -290,16 +386,16 @@ class Program
         if (shoppingCart == null)
         {
             Console.WriteLine("No shopping cart. Select Customer");
-        } else if (shoppingCart.Items.Count == 0)
+        } else if (shoppingCart.CartItems.Count == 0)
         {
             Console.WriteLine("Shopping cart is empty");
         }
         else
         {
-            Console.WriteLine("Cart Items count: {0}", shoppingCart.Items.Count);
-            foreach (CartItem shopping in shoppingCart.Items)
+            Console.WriteLine("Cart Items count: {0}", shoppingCart.CartItems.Count);
+            foreach (CartItem shopping in shoppingCart.CartItems)
             {
-                Console.WriteLine($"Product Id: {shopping.ProductId} Name: {shopping.Product.Name} UnitPrice: ({shopping.Product.Price}) Quantity: {shopping.Quantity} Total:{shopping.Product.Price * shopping.Quantity}");
+                Console.WriteLine($"CartItem Id: {shopping.CartItemId} Name: {shopping.Product.Name} UnitPrice: ({shopping.Product.Price}) Quantity: {shopping.Quantity} Total:{shopping.Product.Price * shopping.Quantity}");
             }
         }
     }
@@ -310,6 +406,13 @@ class Program
         if (!system.HasActiveCustomer())
         {
             Console.WriteLine("No active customer");
+            return;
+        }
+        
+        Cart cart = system.GetActiveCustomerCart();
+        if (cart.CartItems.Count == 0)
+        {
+            Console.WriteLine("No item in cart yet");
             return;
         }
         
@@ -361,6 +464,55 @@ class Program
                     onCartMenu = false;
                     break;
             }
+        }
+    }
+
+    private static void DeleteInCart(OnlineStoreSystem system)
+    {
+        if (!system.HasActiveCustomer())
+        {
+            Console.WriteLine("No active customer");
+            return;
+        }
+        
+        bool onCartMenu = true;
+        while (onCartMenu)
+        {
+            Console.WriteLine("Press yes to proceed with deleting cart item. Press no to cancel");
+            string deleteCartItemOption = Console.ReadLine()!;
+
+            switch (deleteCartItemOption.ToLower())
+            {
+                case "yes":
+                    Console.WriteLine("What would you like to delete?");
+                    DisplayCart(system);
+                    
+
+                    bool validItemId = false;
+                    int itemId;
+                    while (!validItemId)
+                    {
+                        Console.WriteLine("Enter item Id:");
+                        string itemIdOption = Console.ReadLine()!;
+                        bool isInt = int.TryParse(itemIdOption, out itemId);
+                        if (isInt && system.CheckCartItemById(itemId))
+                        {
+                            system.DeleteCartItemById(itemId);
+                            break;
+                        }
+                        else
+                        {
+                            Console.WriteLine("Invalid item id");
+                            break;
+                        }
+
+                    }
+                    break;
+                case "no":
+                    onCartMenu = false;
+                    break;
+            }
+            
         }
     }
 

@@ -1,5 +1,5 @@
 namespace OnlineStore.Data.Repositories.Interfaces;
-using OnlineStoreClassLibrary;
+
 public interface IProductRepository
 {
     List<Product> GetProducts();

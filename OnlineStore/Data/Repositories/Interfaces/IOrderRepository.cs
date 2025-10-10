@@ -1,5 +1,4 @@
 
-using OnlineStoreClassLibrary;
 namespace OnlineStore.Data.Repositories.Interfaces;
 
 public interface IOrderRepository

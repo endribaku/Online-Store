@@ -1,7 +1,7 @@
 using System.Data.Common;
 using OnlineStore.Data.Repositories.Interfaces;
 using OnlineStore.Utilities;
-using OnlineStoreClassLibrary;
+
 namespace OnlineStore.Data.Repositories;
 
 public class OrderRepository : IOrderRepository
@@ -60,8 +60,9 @@ public class OrderRepository : IOrderRepository
             reader = command.ExecuteReader();
             while (reader.Read())
             {
-                CustomerOrder order = new CustomerOrder(int.Parse(reader["OrderId"].ToString())!,
-                    reader.GetDateTime(reader.GetOrdinal("Date")));
+                CustomerOrder order = new CustomerOrder();
+                order.OrderId = int.Parse(reader["OrderId"].ToString())!;
+                order.Date = reader.GetDateTime(reader.GetOrdinal("Date"));
                 order.CustomerId = int.Parse(reader["CustomerId"].ToString()!);
                 order.CustomerName = reader["CustomerName"].ToString()!;
                 order.Total = decimal.Parse(reader["Total"].ToString()!);

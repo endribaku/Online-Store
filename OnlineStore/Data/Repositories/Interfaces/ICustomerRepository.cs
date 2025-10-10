@@ -1,5 +1,4 @@
 namespace OnlineStore.Data.Repositories.Interfaces;
-using OnlineStoreClassLibrary;
 
 public interface ICustomerRepository
 {
